@@ -144,21 +144,27 @@ object UserCreationExercises {
   // Note: `maxAttempt` must be greater than 0, if not you should throw an exception.
   // Note: You can implement the retry logic using recursion or a for/while loop. I suggest
   //       trying both possibilities.
-  @tailrec
+//  @tailrec
   def readSubscribeToMailingListRetry(console: Console, maxAttempt: Int): Boolean = {
-    require(maxAttempt > 0, "maxAttempt must be greater than zero")
-
-    console.writeLine("Would you like to subscribe to our mailing list? [Y/N]")
-    val userResponse = console.readLine()
-
-    Try(parseYesNo(userResponse)) match {
-      case Success(v) => v
-      case Failure(e) =>
-        console.writeLine("""Incorrect format, enter "Y" for Yes or "N" for "No"""")
-        if (maxAttempt > 1)
-          readSubscribeToMailingListRetry(console, maxAttempt - 1)
-        else throw e
+    retry(maxAttempt) {
+      console.writeLine("Would you like to subscribe to our mailing list? [Y/N]")
+      val userResponse = console.readLine()
+      onError(parseYesNo(userResponse), _ => console.writeLine("""Incorrect format, enter "Y" for Yes or "N" for "No""""))
     }
+
+//    require(maxAttempt > 0, "maxAttempt must be greater than zero")
+//
+//    console.writeLine("Would you like to subscribe to our mailing list? [Y/N]")
+//    val userResponse = console.readLine()
+//
+//    Try(parseYesNo(userResponse)) match {
+//      case Success(v) => v
+//      case Failure(e) =>
+//        console.writeLine("""Incorrect format, enter "Y" for Yes or "N" for "No"""")
+//        if (maxAttempt > 1)
+//          readSubscribeToMailingListRetry(console, maxAttempt - 1)
+//        else throw e
+//    }
   }
 
   def readSubscribeToMailingListRetryForLoop(console: Console, maxAttempt: Int): Boolean = {
@@ -192,20 +198,27 @@ object UserCreationExercises {
   // [Prompt] Incorrect format, for example enter "18-03-2001" for 18th of March 2001
   // Throws an exception because the user only had 1 attempt and they entered an invalid input.
   // Note: `maxAttempt` must be greater than 0, if not you should throw an exception.
-  @tailrec
+//  @tailrec
   def readDateOfBirthRetry(console: Console, maxAttempt: Int): LocalDate = {
-    require(maxAttempt > 0, "maxAttempt must be greater than zero")
 
-    console.writeLine("What's your date of birth? [dd-mm-yyyy]")
-    val userResponse = console.readLine()
-    Try(parseDob(userResponse)) match {
-      case Success(dob) => dob
-      case Failure(exception) =>
-        console.writeLine("""Incorrect format, for example enter "18-03-2001" for 18th of March 2001""")
-        if (maxAttempt == 1)
-          throw exception
-        else readDateOfBirthRetry(console, maxAttempt - 1)
+    retry(maxAttempt) {
+      console.writeLine("What's your date of birth? [dd-mm-yyyy]")
+      val userResponse = console.readLine()
+      onError(parseDob(userResponse), _ => console.writeLine("""Incorrect format, for example enter "18-03-2001" for 18th of March 2001"""))
     }
+
+//    require(maxAttempt > 0, "maxAttempt must be greater than zero")
+//
+//    console.writeLine("What's your date of birth? [dd-mm-yyyy]")
+//    val userResponse = console.readLine()
+//    Try(parseDob(userResponse)) match {
+//      case Success(dob) => dob
+//      case Failure(exception) =>
+//        console.writeLine("""Incorrect format, for example enter "18-03-2001" for 18th of March 2001""")
+//        if (maxAttempt == 1)
+//          throw exception
+//        else readDateOfBirthRetry(console, maxAttempt - 1)
+//    }
   }
 
   // 7. Update `readUser` so that it allows the user to make up to 2 mistakes (3 attempts)

@@ -25,8 +25,18 @@ package object imperative {
   // Note: `action: => A` is a by-name parameter (see the Evaluation lesson).
   // Note: `maxAttempt` must be greater than 0, if not you should throw an exception.
   // Note: Tests are in the `exercises.action.imperative.ImperativeActionTest`
-  def retry[A](maxAttempt: Int)(action: => A): A =
-    ???
+  @tailrec
+  def retry[A](maxAttempt: Int)(action: => A): A = {
+    require(maxAttempt > 0, "maxAttempt must be greater than zero")
+
+    Try(action) match {
+      case Success(v) => v
+      case Failure(e) =>
+        if (maxAttempt > 1)
+          retry(maxAttempt - 1)(action)
+        else throw e
+    }
+  }
 
   // 2. Refactor `readSubscribeToMailingListRetry` in `UserCreationExercises` using `retry`.
 
@@ -39,8 +49,14 @@ package object imperative {
   // onError(throw new Exception("Boom"), e => println("An error occurred: ${e.getMessage}"))
   // Prints "An error occurred: Boom" and then rethrow the "Boom" exception.
   // Note: You need to write tests for `onError` yourself in `exercises.action.imperative.ImperativeActionTest`
-  def onError[A](action: => A, cleanup: Throwable => Any): A =
-    ???
+  def onError[A](action: => A, cleanup: Throwable => Any): A = {
+    Try(action) match {
+      case Success(v) => v
+      case Failure(e) =>
+        Try(cleanup(e))
+        throw e
+    }
+  }
 
   // 4. Refactor `readSubscribeToMailingListRetry` using `onError` in `UserCreationExercises`.
 
@@ -56,6 +72,25 @@ package object imperative {
   // Step 3. Check `retry` is a success if `maxAttempt > number of errors` and a failure otherwise.
 
   // 7. Implement `retry` using an imperative loop instead of a recursion.
+
+  def retryImperative[A](maxAttempt: Int)(action: => A): A = {
+    require(maxAttempt > 0, "maxAttempt must be greater than zero")
+    var current = 0
+    var maybeAction: Try[A] = Failure(new IllegalArgumentException("max Attempt must be greater than zero"))
+
+    while (maybeAction.isFailure && current < maxAttempt) {
+      Try(action) match {
+        case res @ Success(v) =>
+          maybeAction = res
+        case Failure(e) =>
+          if ((maxAttempt - current) > 1)
+            current += 1
+          else
+            throw e
+      }
+    }
+    maybeAction.get
+  }
 
   // 8. `onError` takes a `cleanup` function which can fail.
   // This means we could end up with two exceptions:
